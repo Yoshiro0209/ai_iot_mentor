@@ -16,7 +16,7 @@ if "loaded" not in st.session_state:
   ):
     time.sleep(1.5)
   st.session_state.loaded = True
-  st.toast("System Online. Secure Connection Established", icons="🤖")
+  st.toast("System Online. Secure Connection Established", icon="🤖")
 
 st.title("🤖 AI IoT & Python Code Mentor")
 st.write(
