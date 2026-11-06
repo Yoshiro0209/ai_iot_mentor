@@ -1,10 +1,8 @@
 import os
 import streamlit as st
-from dotenv import load_dotenv
 from google import genai
 
 # Memuat API Key dari file .env
-load_dotenv()
 
 # Konfigurasi halaman web
 st.set_page_config(
