@@ -1,4 +1,5 @@
 import os
+import time
 import streamlit as st
 from google import genai
 
@@ -9,11 +10,20 @@ st.set_page_config(
     page_title="AI IoT & Python Mentor", page_icon="🤖", layout="centered"
 )
 
+if "loaded" not in st.session_state:
+  with st.spinner(
+    "Initilalizing Neural Core & Establishing Secure Connection..."
+  ):
+    time.sleep(1.5)
+  st.session_state.loaded = True
+  st.toast("System Online. Secure Connection Established", icons="🤖")
+
 st.title("🤖 AI IoT & Python Code Mentor")
 st.write(
     "Asisten AI pribadi buat bantu kamu debugging kode Python & mikrokontroler"
     " kamu (ESP32/Arduino/ESP8266)"
 )
+
 
 # 1. Inisialisasi Client Gemini (mengambil API key dari environment variable)
 try:
