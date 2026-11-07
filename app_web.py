@@ -109,7 +109,7 @@ if prompt := st.chat_input("Tulis pertanyaan atau tempel kodenya di sini..."):
         ]
 
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.6-flash",
             contents=prompt,
         )
         ai_response = response.text
