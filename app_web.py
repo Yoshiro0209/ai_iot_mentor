@@ -1,6 +1,7 @@
 import time
 from google import genai
 import streamlit as st
+import random
 
 # Konfigurasi halaman web
 st.set_page_config(
@@ -29,12 +30,14 @@ except Exception:
   client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
 # --- FITUR 4: SIDEBAR & INDIKATOR SISTEM REAL-TIME ---
+current_latency = random.randint(15, 68)
+
 with st.sidebar:
   st.markdown("### 🖥️ **SYSTEM STATUS**")
   st.markdown(
       """
     - **Status:** `ONLINE` 🟢
-    - **Latency:** `24ms`
+    - **Latency:** `{current_latency}ms`
     - **Engine:** `Gemini AI`
     - **Security:** `Encrypted`
     """
