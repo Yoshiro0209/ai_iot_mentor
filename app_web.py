@@ -35,7 +35,7 @@ current_latency = random.randint(15, 68)
 with st.sidebar:
   st.markdown("### 🖥️ **SYSTEM STATUS**")
   st.markdown(
-      """
+      f"""
     - **Status:** `ONLINE` 🟢
     - **Latency:** `{current_latency}ms`
     - **Engine:** `Gemini AI`
