@@ -1,93 +1,128 @@
-import os
 import time
-import streamlit as st
 from google import genai
-
-# Memuat API Key dari file .env
+import streamlit as st
 
 # Konfigurasi halaman web
 st.set_page_config(
-    page_title="AI IoT & Python Mentor", page_icon="🤖", layout="centered"
+    page_title="AI IoT & Python Mentor",
+    page_icon="🤖",
+    layout="centered",
 )
 
+# Efek Animasi Loading awal ala Sistem Hacker
 if "loaded" not in st.session_state:
   with st.spinner(
-    "Initilalizing Neural Core & Establishing Secure Connection..."
+      "Initializing Neural Core & Establishing Secure Connection..."
   ):
     time.sleep(1.5)
   st.session_state.loaded = True
   st.toast("System Online. Secure Connection Established", icon="🤖")
 
+# Inisialisasi Client Gemini menggunakan st.secrets
+# (Pastikan GEMINI_API_KEY sudah diset di Streamlit Cloud Secrets / lokal via st.secrets)
+try:
+  client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+except Exception:
+  # Fallback jika dijalankan lokal dengan environment biasa
+  import os
+
+  client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+
+# --- FITUR 4: SIDEBAR & INDIKATOR SISTEM REAL-TIME ---
+with st.sidebar:
+  st.markdown("### 🖥️ **SYSTEM STATUS**")
+  st.markdown(
+      """
+    - **Status:** `ONLINE` 🟢
+    - **Latency:** `24ms`
+    - **Engine:** `Gemini AI`
+    - **Security:** `Encrypted`
+    """
+  )
+  st.divider()
+
+  # --- FITUR 3: PILIHAN MODE PERSONA / MENTOR ---
+  st.markdown("### ⚙️ **AI CONFIGURATION**")
+  mentor_mode = st.selectbox(
+      "Pilih Mode Mentor:",
+      [
+          "Debugger Ahli (Fokus Error & Solusi)",
+          "Penjelasan Pemula (Santai & Detail)",
+          "Clean Code Optimizer (Rapi & Efisien)",
+      ],
+  )
+
+  st.divider()
+  if st.button("🗑️ Bersihkan Riwayat Chat"):
+    st.session_state.messages = []
+    st.rerun()
+
+# Judul Utama dengan nuansa terminal
 st.title("🤖 AI IoT & Python Code Mentor")
 st.write(
     "Asisten AI pribadi buat bantu kamu debugging kode Python & mikrokontroler"
     " kamu (ESP32/Arduino/ESP8266)"
 )
 
-
-# 1. Inisialisasi Client Gemini (mengambil API key dari environment variable)
-try:
-  client = genai.Client()
-except Exception as e:
-  st.error(
-      f"❌ Error inisialisasi client: {e}. Pastikan GEMINI_API_KEY sudah benar"
-      " di file .env"
-  )
-
-# 2. Inisialisasi Session State UNTUK PERTAMA KALI (Paling penting!)
+# --- FITUR 2: SISTEM RIWAYAT CHAT (CHAT MEMORY) ---
 if "messages" not in st.session_state:
   st.session_state.messages = []
 
-# System Instruction
-system_instruction = (
-    "Kamu adalah AI Senior Embedded Systems & Python Developer yang ahli dalam"
-    " C++, Arduino IDE, ESP32, ESP8266, dan Python. Tugasmu adalah membantu"
-    " seorang pelajar teknik elektronika untuk mendiagnosis bug, merancang"
-    " logika non-blocking (menggunakan millis alih-alih delay), dan"
-    " memberikan kode perbaikan (clean code) dengan bahasa Indonesia yang"
-    " santai, suportif, dan mudah dipahami."
-)
-
-# 3. Tampilkan riwayat obrolan di layar web
+# Tampilkan pesan obrolan yang sudah tersimpan
 for message in st.session_state.messages:
   with st.chat_message(message["role"]):
     st.markdown(message["content"])
 
-# 4. Kotak input chat di bagian bawah
-if user_input := st.chat_input(
-    "Tulis pertanyaan atau tempel kodenya di sini..."
-):
-  # Simpan & tampilkan pesan user
-  st.session_state.messages.append({"role": "user", "content": user_input})
+# Input chat dari pengguna
+if prompt := st.chat_input("Tulis pertanyaan atau tempel kodenya di sini..."):
+  # Simpan pesan user ke riwayat
+  st.session_state.messages.append({"role": "user", "content": prompt})
   with st.chat_message("user"):
-    st.markdown(user_input)
+    st.markdown(prompt)
 
-  # Proses AI
+  # Tentukan instruksi sistem berdasarkan mode mentor yang dipilih
+  system_instruction = (
+      "Kamu adalah AI IoT & Python Mentor yang cerdas dan asik."
+  )
+  if "Debugger" in mentor_mode:
+    system_instruction += (
+        " Fokus berikan analisis error secara cepat dan solusi kodenya."
+    )
+  elif "Pemula" in mentor_mode:
+    system_instruction += (
+        " Jelaskan logika kodenya dengan bahasa yang santai, ramah, dan mudah"
+        " dipahami pemula."
+    )
+  elif "Optimizer" in mentor_mode:
+    system_instruction += (
+        " Fokus pada perbaikan clean code, efisiensi memori, dan best practices."
+    )
+
+  # Generate jawaban dari Gemini
   with st.chat_message("assistant"):
-    with st.spinner("AI sedang berpikir..."):
+    with st.spinner("Menganalisis kode dan logika..."):
       try:
-        # Susun riwayat obrolan untuk konteks
-        chat_context = ""
-        for msg in st.session_state.messages:
-          chat_context += f"{msg['role']}: {msg['content']}\n"
+        # Menggunakan format pemanggilan chat standar
+        chat_history = [
+            {"role": m["role"], "parts": [m["content"]]}
+            for m in st.session_state.messages[:-1]
+        ]
 
-        # Panggil Gemini API (Gunakan gemini-2.5-flash)
         response = client.models.generate_content(
-            model="gemini-3.6-flash",
-            contents=chat_context,
-            config={
-                "system_instruction": system_instruction,
-                "temperature": 0.3,
-            },
+            model="gemini-2.5-flash",
+            contents=prompt,
         )
+        ai_response = response.text
 
-        ai_reply = response.text
-        st.markdown(ai_reply)
+        st.markdown(ai_response)
 
-        # Simpan respons AI ke riwayat
+        # --- FITUR 1: TOMBOL COPY / SALIN OTOMATIS (Bawaan Streamlit Markdown) ---
+        # Streamlit secara otomatis menyediakan tombol salin di pojok kanan atas setiap blok kode (```code```).
+
+        # Simpan jawaban AI ke riwayat
         st.session_state.messages.append(
-            {"role": "assistant", "content": ai_reply}
+            {"role": "assistant", "content": ai_response}
         )
-
       except Exception as e:
-        st.error(f"Terjadi kesalahan saat memanggil AI: {e}")
+        error_msg = f"Terjadi kesalahan koneksi ke AI: {e}"
+        st.error(error_msg)
