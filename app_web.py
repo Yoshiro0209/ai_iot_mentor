@@ -3,6 +3,16 @@ from google import genai
 import streamlit as st
 import random
 
+hide_streamlit_style = """
+<style>
+.stAppToolabr {visibility: hidden;}
+
+#MainMenu {visibility: hidden;}
+header {visibility: hidden;}
+</style>
+"""
+
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 # Konfigurasi halaman web
 st.set_page_config(
     page_title="AI IoT & Python Mentor",
