@@ -8,7 +8,6 @@ hide_streamlit_style = """
 .stAppToolabr {visibility: hidden;}
 
 #MainMenu {visibility: hidden;}
-header {visibility: hidden;}
 </style>
 """
 
